@@ -1,0 +1,39 @@
+# 1. Deployment: Creates and manages Pods running your REST web service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: springrest-demo1-deployment
+  labels:
+    app: springrest-demo1
+spec:
+  replicas: 2  # Runs 2 identical Pods for load balancing and high availability
+  selector:
+    matchLabels:
+      app: springrest-demo1
+  template:
+    metadata:
+      labels:
+        app: springrest-demo1  # Must match the Service selector below
+    spec:
+      containers:
+        - name: springrest-demo1
+          image: kamalitta/springrest-demo1:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8081  # Port your Spring Boot app listens on
+
+---
+# 2. Service: Exposes your Pods over a stable network endpoint
+apiVersion: v1
+kind: Service
+metadata:
+  name: springrest-demo1-service
+spec:
+  type: NodePort  # Exposes the service on a static port on your node's IP
+  selector:
+    app: springrest-demo1  # Routes incoming traffic to Pods with this label
+  ports:
+    - protocol: TCP
+      port: 8081        # Internal cluster Service port
+      targetPort: 8081  # Container port inside the Pod
+      nodePort: 30081   # External port you access in your browser/Postman (range: 30000-32767)
